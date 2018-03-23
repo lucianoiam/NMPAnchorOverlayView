@@ -96,6 +96,9 @@ class NMPAnchorOverlayView: UIView {
    // The amount of relative verticle movement of view at the end
    // of animation ranges 0.01 - 1.0
    var animClearance: CGFloat = 0.7
+   
+   // If true, let view expand beyond maxHeight property
+   var limitHeight: Bool = false
 
    
    // MARK: - Read only public Properties
@@ -110,8 +113,6 @@ class NMPAnchorOverlayView: UIView {
    
    // MARK: - Private Variables
    
-   private var startHeight: CGFloat!
-   private var startPoint: CGPoint = CGPoint.zero
    private var slideDirection: SlideDirection = .none
    private var mySuperView: UIView?
    
@@ -167,7 +168,6 @@ class NMPAnchorOverlayView: UIView {
    /// Set the common appearance of the view.
    /// - Returns: n/a
    private func commonInit() {
-      self.startHeight = minHeight
       self.translatesAutoresizingMaskIntoConstraints = false
    }
    
@@ -285,10 +285,6 @@ class NMPAnchorOverlayView: UIView {
    /// And resets slide-direction.
    /// - Returns: n/a
    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-      guard let  touch = touches.first else { print("no touches"); return }
-      
-      startPoint = touch.location(in: self)
-      startHeight = heightConstraint.constant
       slideDirection = .none
       super.touchesBegan(touches, with: event)
    }
@@ -299,24 +295,35 @@ class NMPAnchorOverlayView: UIView {
    /// - Returns: n/a
    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
       guard let touch = touches.first else { print("touchesMovedno touches"); return }
+    
+      let diff = touch.location(in: self).y - touch.previousLocation(in: self).y
+      var newHeight: CGFloat
       
-      let endPoint = touch.location(in: self)
-      let diff = endPoint.y - startPoint.y
-      
-      // This causes the view to move along the drag
+
       switch anchorLocation {
       case .top :
-         heightConstraint.constant = startHeight + diff
+         newHeight = heightConstraint.constant + diff
       case .bottom :
-         heightConstraint.constant = startHeight - diff
+         newHeight = heightConstraint.constant - diff
       }
-      self.layoutIfNeeded()
-      
+
+
       // Update direction
       if diff == 0.0 {
          self.slideDirection = .none
       } else {
-         self.slideDirection = (diff > 0) ? .down : .up
+        if diff > 0 {
+            self.slideDirection = .down
+        } else {
+            self.slideDirection = .up
+        }
+        if !self.limitHeight || newHeight < self.maxHeight {
+            // This causes the view to move along the drag
+            heightConstraint.constant = newHeight
+            self.layoutIfNeeded()
+        } else {
+            self.slideDirection = .none
+        }
       }
       super.touchesMoved(touches, with: event)
    }
