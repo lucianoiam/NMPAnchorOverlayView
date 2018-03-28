@@ -39,6 +39,7 @@ import UIKit
    @objc optional func NMPAnchorOverlayViewDidShrink(view: UIView)
    @objc optional func NMPAnchorOverlayViewWillExpand(view: UIView)
    @objc optional func NMPAnchorOverlayViewWillShrink(view: UIView)
+   @objc optional func NMPAnchorOverlayViewDidUpdateBounds(view: UIView, height: CGFloat)
 }
 
 class NMPAnchorOverlayView: UIView {
@@ -96,9 +97,6 @@ class NMPAnchorOverlayView: UIView {
    // The amount of relative verticle movement of view at the end
    // of animation ranges 0.01 - 1.0
    var animClearance: CGFloat = 0.7
-   
-   // If true, let view expand beyond maxHeight property
-   var limitHeight: Bool = false
 
    
    // MARK: - Read only public Properties
@@ -149,7 +147,7 @@ class NMPAnchorOverlayView: UIView {
       super.init(frame: CGRect(origin: CGPoint.zero, size: size))
       
       self.anchorLocation = anchorLocation
-      self.yMargin = abs(yMargin)
+      self.yMargin = yMargin
       commonInit()
       useStoryBoard(newValue: false)
    }
@@ -236,9 +234,9 @@ class NMPAnchorOverlayView: UIView {
       guard let mySuperView = self.mySuperView else { return }
       
       if anchorLocation == .top {
-         self.topConstraint = NSLayoutConstraint(item: self, attribute: .top, relatedBy: .equal, toItem: mySuperView, attribute: .top, multiplier: 1, constant: abs(yMargin))
+         self.topConstraint = NSLayoutConstraint(item: self, attribute: .top, relatedBy: .equal, toItem: mySuperView, attribute: .top, multiplier: 1, constant: yMargin)
       } else if anchorLocation == .bottom {
-         self.bottomConstraint = self.bottomAnchor.constraint(equalTo: mySuperView.bottomAnchor, constant: -abs(yMargin))
+         self.bottomConstraint = self.bottomAnchor.constraint(equalTo: mySuperView.bottomAnchor, constant: yMargin)
       }
       
       let hSpace = abs(mySuperView.frame.width - frame.width)
@@ -262,7 +260,7 @@ class NMPAnchorOverlayView: UIView {
    /// when it needs to close the view to regain it's real estate.
    /// This method changes size and animates.
    /// - Returns: n/a
-   func closeView() {
+    func closeView() {
       guard heightConstraint.constant == maxHeight else { return }
       
       if self.anchorLocation == .bottom {
@@ -273,7 +271,7 @@ class NMPAnchorOverlayView: UIView {
       
       modifyHeightConstraints()
       animateViewTransition( duration: animDuration, delay: animDelay, clearance: animClearance, springDampingRatio: animSpringDampingRatio, initialSpringVelocity: animInitialSpringVelocity ) {
-         self.slideDirection = .none
+        self.slideDirection = .none
       }
    }
    
@@ -317,7 +315,7 @@ class NMPAnchorOverlayView: UIView {
         } else {
             self.slideDirection = .up
         }
-        if !self.limitHeight || newHeight < self.maxHeight {
+        if newHeight < self.maxHeight {
             // This causes the view to move along the drag
             heightConstraint.constant = newHeight
             self.layoutIfNeeded()
@@ -325,6 +323,7 @@ class NMPAnchorOverlayView: UIView {
             self.slideDirection = .none
         }
       }
+      self.delegate?.NMPAnchorOverlayViewDidUpdateBounds?(view: self, height: self.bounds.height)
       super.touchesMoved(touches, with: event)
    }
    
