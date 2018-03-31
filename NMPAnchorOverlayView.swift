@@ -39,6 +39,7 @@ import UIKit
    @objc optional func NMPAnchorOverlayViewDidShrink(view: UIView)
    @objc optional func NMPAnchorOverlayViewWillExpand(view: UIView)
    @objc optional func NMPAnchorOverlayViewWillShrink(view: UIView)
+   @objc optional func NMPAnchorOverlayViewDidStartTouches(view: UIView)
    @objc optional func NMPAnchorOverlayViewDidUpdateBounds(view: UIView, height: CGFloat)
 }
 
@@ -284,6 +285,7 @@ class NMPAnchorOverlayView: UIView {
    /// - Returns: n/a
    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
       slideDirection = .none
+      self.delegate?.NMPAnchorOverlayViewDidStartTouches?(view: self)
       super.touchesBegan(touches, with: event)
    }
    
@@ -295,34 +297,22 @@ class NMPAnchorOverlayView: UIView {
       guard let touch = touches.first else { print("touchesMovedno touches"); return }
     
       let diff = touch.location(in: self).y - touch.previousLocation(in: self).y
-      var newHeight: CGFloat
-      
-
+      if diff == 0 {
+        return
+      }
+    
+      // This causes the view to move along the drag
       switch anchorLocation {
       case .top :
-         newHeight = heightConstraint.constant + diff
+        heightConstraint.constant += diff
       case .bottom :
-         newHeight = heightConstraint.constant - diff
+        heightConstraint.constant -= diff
       }
-
-
+      self.layoutIfNeeded()
+    
       // Update direction
-      if diff == 0.0 {
-         self.slideDirection = .none
-      } else {
-        if diff > 0 {
-            self.slideDirection = .down
-        } else {
-            self.slideDirection = .up
-        }
-        if newHeight < self.maxHeight {
-            // This causes the view to move along the drag
-            heightConstraint.constant = newHeight
-            self.layoutIfNeeded()
-        } else {
-            self.slideDirection = .none
-        }
-      }
+      self.slideDirection = (diff > 0) ? .down : .up
+
       self.delegate?.NMPAnchorOverlayViewDidUpdateBounds?(view: self, height: self.bounds.height)
       super.touchesMoved(touches, with: event)
    }
