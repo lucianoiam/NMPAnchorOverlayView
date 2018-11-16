@@ -102,11 +102,11 @@ class NMPAnchorOverlayView: UIView {
    
    // MARK: - Read only public Properties
    
-   public private(set) weak var trailingConstraint: NSLayoutConstraint!
-   public private(set) weak var leadingConstraint: NSLayoutConstraint!
-   public private(set) weak var heightConstraint: NSLayoutConstraint!
-   public private(set) weak var topConstraint: NSLayoutConstraint?
-   public private(set) weak var bottomConstraint: NSLayoutConstraint?
+   public private(set) var trailingConstraint: NSLayoutConstraint!
+   public private(set) var leadingConstraint: NSLayoutConstraint!
+   public private(set) var heightConstraint: NSLayoutConstraint!
+   public private(set) var topConstraint: NSLayoutConstraint?
+   public private(set) var bottomConstraint: NSLayoutConstraint?
    public private(set) var viewState: ViewState = .shrink
    public private(set) var yMargin: CGFloat! = 35.0
    
