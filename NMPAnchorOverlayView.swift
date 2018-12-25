@@ -40,6 +40,7 @@ import UIKit
    @objc optional func NMPAnchorOverlayViewWillExpand(view: UIView)
    @objc optional func NMPAnchorOverlayViewWillShrink(view: UIView)
    @objc optional func NMPAnchorOverlayViewDidStartTouches(view: UIView)
+   @objc optional func NMPAnchorOverlayViewDidEndTouches(view: UIView)
    @objc optional func NMPAnchorOverlayViewDidUpdateBounds(view: UIView, height: CGFloat)
 }
 
@@ -326,6 +327,7 @@ class NMPAnchorOverlayView: UIView {
       self.animateViewTransition(duration: animDuration, delay: animDelay, clearance: animClearance, springDampingRatio: animSpringDampingRatio, initialSpringVelocity: animInitialSpringVelocity, complete: {
          self.slideDirection = .none
       })
+      self.delegate?.NMPAnchorOverlayViewDidEndTouches?(view: self)
       super.touchesEnded(touches, with: event)
    }
    
